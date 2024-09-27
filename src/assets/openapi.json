@@ -1,0 +1,1151 @@
+{
+    "openapi": "3.0.1",
+    "info": {
+        "title": "OpenAPI definition",
+        "version": "v0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:8080",
+            "description": "Generated server url"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Config controller",
+            "description": "API endpoints for config."
+        },
+        {
+            "name": "Analytics controller",
+            "description": "API endpoints for analytics."
+        },
+        {
+            "name": "Task controller",
+            "description": "API endpoints for managing task entities."
+        }
+    ],
+    "paths": {
+        "/task/upload/{id}": {
+            "put": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Upload files and create task's in documents for given id.",
+                "description": "Upload files and create task's in documents for given id.",
+                "operationId": "uploadFiles",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "files"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "files": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Task's in documents configuration successfully updated created and files successfully uploaded.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UploadDocumentResponse"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/UploadDocumentResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/scheduler/{id}": {
+            "put": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Updates scheduler configuration for task with given id.",
+                "description": "Updates scheduler configuration for task with given id.",
+                "operationId": "updateTaskScheduler",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/SchedulerConfigRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Task's scheduler configuration successfully updated."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/task/config/{id}": {
+            "put": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Updates ocr configuration for task with given id.",
+                "description": "Updates ocr configuration for task with given id.",
+                "operationId": "updateTaskConfig",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/OcrConfigRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "204": {
+                        "description": "Task's ocr configuration successfully updated."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/ocr": {
+            "get": {
+                "tags": [
+                    "ocr-controller"
+                ],
+                "summary": "Get ocr progress for given id.",
+                "description": "Get ocr progress for given id.",
+                "operationId": "getOcrJobProgress",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ocr progress successfully retrieved.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OcrProgress"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request data.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/OcrProgress"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "ocr-controller"
+                ],
+                "summary": "Interrupt ocr job for given id.",
+                "description": "Interrupt ocr job for given id.",
+                "operationId": "interuptOcrJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Task interrupted successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "ocr-controller"
+                ],
+                "summary": "Schedule ocr job.",
+                "description": "Schedule ocr job. If a task has a defined start time, the OCR job will be initiated \n            |at the earliest possible moment after that time and when an executor becomes available. \n            |If the start time is not defined, the job will be initiated as soon as possible, depending on the availability of an executor.",
+                "operationId": "scheduleOcrJob",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Task scheduled successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/task": {
+            "get": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Get all tasks.",
+                "description": "Returns all tasks.",
+                "operationId": "findAllTasks",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved tasks.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/Task"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Create task.",
+                "description": "Creates a new task based on the provided model.",
+                "operationId": "createTask",
+                "requestBody": {
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "model"
+                                ],
+                                "type": "object",
+                                "properties": {
+                                    "model": {
+                                        "$ref": "#/components/schemas/TaskAddRequest"
+                                    },
+                                    "files": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string",
+                                            "format": "binary"
+                                        }
+                                    }
+                                }
+                            },
+                            "encoding": {
+                                "model": {
+                                    "contentType": "application/json"
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task created successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/task/draft": {
+            "post": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Create draft task.",
+                "description": "Creates a new task based on the provided model.",
+                "operationId": "createDraftTask",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TaskDraftRequest"
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task created successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/task/language/{id}": {
+            "patch": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Updates language of ocr configuration for task with given id.",
+                "description": "Updates language of ocr configuration for task with given id.",
+                "operationId": "updateTaskLanguage",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "language",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Task's language of ocr configuration successfully updated."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    }
+                }
+            }
+        },
+        "/task/{id}": {
+            "get": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Get task by id.",
+                "description": "Returns an task with the specified id.",
+                "operationId": "findTaskById",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved task.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Task"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Delete task and remove all files.",
+                "description": "Delete task and remove all files.",
+                "operationId": "deleteTask",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Task deleted and all files removed from file system successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorInfo"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/page": {
+            "get": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Get tasks by page.",
+                "description": "Returns a page of tasks based on page number and page size.",
+                "operationId": "findPageWithTasks",
+                "parameters": [
+                    {
+                        "name": "pageNumber",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    },
+                    {
+                        "name": "pageSize",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "format": "int32"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved page of tasks.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PagedModel"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/config/page-segmentation-mode": {
+            "get": {
+                "tags": [
+                    "Config controller"
+                ],
+                "summary": "Get all page segmentation modes.",
+                "description": "Returns a collection with page segmentation modes.",
+                "operationId": "findPageSegmentationModes",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved page segmentation modes.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/PageSegmentationModeResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/config/file-format": {
+            "get": {
+                "tags": [
+                    "Config controller"
+                ],
+                "summary": "Get all file formats.",
+                "description": "Returns a collection with file formats.",
+                "operationId": "findFileFormats",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved of file formats.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/FileFormatResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/config/engine-mode": {
+            "get": {
+                "tags": [
+                    "Config controller"
+                ],
+                "summary": "Get all ocr engine modes.",
+                "description": "Returns a collection with ocr engine modes.",
+                "operationId": "findOcrEngineModes",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved page of ocr engine modes.",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/OcrEngineModeResponse"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/analytics/count-by-status": {
+            "get": {
+                "tags": [
+                    "Analytics controller"
+                ],
+                "summary": "Get count by status.",
+                "description": "Returns count by status information.",
+                "operationId": "getCountByStatus",
+                "responses": {
+                    "200": {
+                        "description": "Successfully retrieved count by status.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/StatusCount"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/task/file/{id}": {
+            "delete": {
+                "tags": [
+                    "Task controller"
+                ],
+                "summary": "Remove file or all files and document from task.",
+                "description": "Remove file or all files (in case that param originalFileName is not give) and document from task.",
+                "operationId": "removeFile",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    },
+                    {
+                        "name": "originalFileName",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "File removed from file system successfully. Also document task updated successfully."
+                    },
+                    "400": {
+                        "description": "Invalid request data."
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "content": {
+                            "*/*": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorInfo"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ErrorInfo": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "100 CONTINUE",
+                            "101 SWITCHING_PROTOCOLS",
+                            "102 PROCESSING",
+                            "103 EARLY_HINTS",
+                            "103 CHECKPOINT",
+                            "200 OK",
+                            "201 CREATED",
+                            "202 ACCEPTED",
+                            "203 NON_AUTHORITATIVE_INFORMATION",
+                            "204 NO_CONTENT",
+                            "205 RESET_CONTENT",
+                            "206 PARTIAL_CONTENT",
+                            "207 MULTI_STATUS",
+                            "208 ALREADY_REPORTED",
+                            "226 IM_USED",
+                            "300 MULTIPLE_CHOICES",
+                            "301 MOVED_PERMANENTLY",
+                            "302 FOUND",
+                            "302 MOVED_TEMPORARILY",
+                            "303 SEE_OTHER",
+                            "304 NOT_MODIFIED",
+                            "305 USE_PROXY",
+                            "307 TEMPORARY_REDIRECT",
+                            "308 PERMANENT_REDIRECT",
+                            "400 BAD_REQUEST",
+                            "401 UNAUTHORIZED",
+                            "402 PAYMENT_REQUIRED",
+                            "403 FORBIDDEN",
+                            "404 NOT_FOUND",
+                            "405 METHOD_NOT_ALLOWED",
+                            "406 NOT_ACCEPTABLE",
+                            "407 PROXY_AUTHENTICATION_REQUIRED",
+                            "408 REQUEST_TIMEOUT",
+                            "409 CONFLICT",
+                            "410 GONE",
+                            "411 LENGTH_REQUIRED",
+                            "412 PRECONDITION_FAILED",
+                            "413 PAYLOAD_TOO_LARGE",
+                            "413 REQUEST_ENTITY_TOO_LARGE",
+                            "414 URI_TOO_LONG",
+                            "414 REQUEST_URI_TOO_LONG",
+                            "415 UNSUPPORTED_MEDIA_TYPE",
+                            "416 REQUESTED_RANGE_NOT_SATISFIABLE",
+                            "417 EXPECTATION_FAILED",
+                            "418 I_AM_A_TEAPOT",
+                            "419 INSUFFICIENT_SPACE_ON_RESOURCE",
+                            "420 METHOD_FAILURE",
+                            "421 DESTINATION_LOCKED",
+                            "422 UNPROCESSABLE_ENTITY",
+                            "423 LOCKED",
+                            "424 FAILED_DEPENDENCY",
+                            "425 TOO_EARLY",
+                            "426 UPGRADE_REQUIRED",
+                            "428 PRECONDITION_REQUIRED",
+                            "429 TOO_MANY_REQUESTS",
+                            "431 REQUEST_HEADER_FIELDS_TOO_LARGE",
+                            "451 UNAVAILABLE_FOR_LEGAL_REASONS",
+                            "500 INTERNAL_SERVER_ERROR",
+                            "501 NOT_IMPLEMENTED",
+                            "502 BAD_GATEWAY",
+                            "503 SERVICE_UNAVAILABLE",
+                            "504 GATEWAY_TIMEOUT",
+                            "505 HTTP_VERSION_NOT_SUPPORTED",
+                            "506 VARIANT_ALSO_NEGOTIATES",
+                            "507 INSUFFICIENT_STORAGE",
+                            "508 LOOP_DETECTED",
+                            "509 BANDWIDTH_LIMIT_EXCEEDED",
+                            "510 NOT_EXTENDED",
+                            "511 NETWORK_AUTHENTICATION_REQUIRED"
+                        ]
+                    },
+                    "errors": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "path": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "UploadDocumentResponse": {
+                "type": "object",
+                "properties": {
+                    "randomizedFileName": {
+                        "type": "string"
+                    },
+                    "originalFileName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SchedulerConfigRequest": {
+                "type": "object",
+                "properties": {
+                    "startDateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "OcrConfigRequest": {
+                "type": "object",
+                "properties": {
+                    "ocrEngineMode": {
+                        "type": "string",
+                        "enum": [
+                            "LEGACY",
+                            "LSTM",
+                            "LEGACY_LSTM",
+                            "DEFAULT"
+                        ]
+                    },
+                    "pageSegmentationMode": {
+                        "type": "string",
+                        "enum": [
+                            "MODE_0",
+                            "MODE_1",
+                            "MODE_2",
+                            "MODE_3",
+                            "MODE_4",
+                            "MODE_5",
+                            "MODE_6",
+                            "MODE_7",
+                            "MODE_8",
+                            "MODE_9",
+                            "MODE_10",
+                            "MODE_11",
+                            "MODE_12",
+                            "MODE_13"
+                        ]
+                    },
+                    "language": {
+                        "type": "string"
+                    },
+                    "tessVariables": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "preProcessing": {
+                        "type": "boolean"
+                    },
+                    "fileFormat": {
+                        "type": "string",
+                        "enum": [
+                            "PDF",
+                            "HOCR",
+                            "TEXT"
+                        ]
+                    },
+                    "mergeDocuments": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "TaskAddRequest": {
+                "required": [
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "ocrConfig": {
+                        "$ref": "#/components/schemas/OcrConfigRequest"
+                    },
+                    "schedulerConfig": {
+                        "$ref": "#/components/schemas/SchedulerConfigRequest"
+                    }
+                }
+            },
+            "TaskDraftRequest": {
+                "required": [
+                    "name"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    }
+                }
+            },
+            "Document": {
+                "type": "object",
+                "properties": {
+                    "originalFileName": {
+                        "type": "string"
+                    },
+                    "randomizedFileName": {
+                        "type": "string"
+                    },
+                    "type": {
+                        "type": "string"
+                    },
+                    "outDocument": {
+                        "$ref": "#/components/schemas/OutDocument"
+                    }
+                }
+            },
+            "OcrConfig": {
+                "type": "object",
+                "properties": {
+                    "language": {
+                        "type": "string"
+                    },
+                    "ocrEngineMode": {
+                        "type": "string",
+                        "enum": [
+                            "LEGACY",
+                            "LSTM",
+                            "LEGACY_LSTM",
+                            "DEFAULT"
+                        ]
+                    },
+                    "pageSegmentationMode": {
+                        "type": "string",
+                        "enum": [
+                            "MODE_0",
+                            "MODE_1",
+                            "MODE_2",
+                            "MODE_3",
+                            "MODE_4",
+                            "MODE_5",
+                            "MODE_6",
+                            "MODE_7",
+                            "MODE_8",
+                            "MODE_9",
+                            "MODE_10",
+                            "MODE_11",
+                            "MODE_12",
+                            "MODE_13"
+                        ]
+                    },
+                    "tessVariables": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "string"
+                        }
+                    },
+                    "preProcessing": {
+                        "type": "boolean"
+                    },
+                    "fileFormat": {
+                        "type": "string",
+                        "enum": [
+                            "PDF",
+                            "HOCR",
+                            "TEXT"
+                        ]
+                    },
+                    "mergeDocuments": {
+                        "type": "boolean"
+                    }
+                }
+            },
+            "OcrProgress": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "CREATED",
+                            "TRIGGERED",
+                            "STARTED",
+                            "FAILED",
+                            "INTERRUPTED",
+                            "CANCELED",
+                            "FINISHED"
+                        ]
+                    },
+                    "progress": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "OutDocument": {
+                "type": "object",
+                "properties": {
+                    "outputFileName": {
+                        "type": "string"
+                    }
+                }
+            },
+            "SchedulerConfig": {
+                "type": "object",
+                "properties": {
+                    "startDateTime": {
+                        "type": "string",
+                        "format": "date-time"
+                    }
+                }
+            },
+            "Task": {
+                "type": "object",
+                "properties": {
+                    "createdBy": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "createdDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "lastModifiedBy": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "lastModifiedDate": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "version": {
+                        "type": "integer",
+                        "format": "int32"
+                    },
+                    "id": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "ocrConfig": {
+                        "$ref": "#/components/schemas/OcrConfig"
+                    },
+                    "schedulerConfig": {
+                        "$ref": "#/components/schemas/SchedulerConfig"
+                    },
+                    "ocrProgress": {
+                        "$ref": "#/components/schemas/OcrProgress"
+                    },
+                    "inDocuments": {
+                        "type": "array",
+                        "properties": {
+                            "mergedDocumentName": {
+                                "type": "string"
+                            },
+                            "empty": {
+                                "type": "boolean"
+                            },
+                            "first": {
+                                "$ref": "#/components/schemas/Document"
+                            },
+                            "last": {
+                                "$ref": "#/components/schemas/Document"
+                            }
+                        },
+                        "items": {
+                            "$ref": "#/components/schemas/Document"
+                        }
+                    }
+                }
+            },
+            "PageMetadata": {
+                "type": "object",
+                "properties": {
+                    "size": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "number": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalElements": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "totalPages": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            },
+            "PagedModel": {
+                "type": "object",
+                "properties": {
+                    "content": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "page": {
+                        "$ref": "#/components/schemas/PageMetadata"
+                    }
+                }
+            },
+            "PageSegmentationModeResponse": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FileFormatResponse": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "extension": {
+                        "type": "string"
+                    },
+                    "tesseractFormat": {
+                        "type": "string"
+                    }
+                }
+            },
+            "OcrEngineModeResponse": {
+                "type": "object",
+                "properties": {
+                    "value": {
+                        "type": "string"
+                    },
+                    "description": {
+                        "type": "string"
+                    }
+                }
+            },
+            "StatusCount": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "enum": [
+                            "CREATED",
+                            "TRIGGERED",
+                            "STARTED",
+                            "FAILED",
+                            "INTERRUPTED",
+                            "CANCELED",
+                            "FINISHED"
+                        ]
+                    },
+                    "count": {
+                        "type": "integer",
+                        "format": "int64"
+                    }
+                }
+            }
+        }
+    }
+}

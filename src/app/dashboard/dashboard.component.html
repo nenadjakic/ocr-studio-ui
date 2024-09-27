@@ -1,0 +1,16 @@
+<p-panel>
+  <p-card
+    *ngIf="data"
+    header="Count by status"
+    [style]="{ width: '25rem', overflow: 'hidden' }"
+  >
+    <div class="card flex justify-center">
+      <p-chart
+        type="pie"
+        [data]="data"
+        [options]="options"
+        class="md:w-[30rem]"
+      />
+    </div>
+  </p-card>
+</p-panel>

@@ -1,0 +1,145 @@
+<form [formGroup]="ocrConfigForm" (ngSubmit)="onSave()">
+  <div class="formgrid grid">
+    <div class="field col-12 md:col-12">
+      <label for="language" class="block">Language</label>
+      <input
+        id="language"
+        formControlName="language"
+        type="text"
+        pInputText
+        fluid
+      />
+    </div>
+
+    <div class="field col-12 md:col-6">
+      <label class="block" for="ocrEngineMode">OCR Engine</label>
+      <p-select
+        id="ocrEngineMode"
+        optionLabel="name"
+        [options]="ocrEngineModes"
+        formControlName="ocrEngineMode"
+        fluid
+      />
+    </div>
+
+    <div class="field col-12 md:col-6">
+      <label class="block" for="pageSegmentationMode">Page Segmentation</label>
+      <p-select
+        id="pageSegmentationMode"
+        optionLabel="name"
+        [options]="pageSegmentationModes"
+        formControlName="pageSegmentationMode"
+        fluid
+      />
+    </div>
+
+    <div class="field col-12 md:col-12">
+      <label class="block">Tesseract variables</label>
+
+      <p-panel>
+        <div formArrayName="tessVariables">
+          <div
+            *ngFor="let variable of tessVariables.controls; let i = index"
+            [formGroupName]="i"
+            class="col-offset-3 md:col-offset-2"
+          >
+            <div class="field">
+              <input
+                id="varName-{{ i }}"
+                type="text"
+                pInputText
+                formControlName="varName"
+                readonly="true"
+              />
+
+              <input
+                id="varValue-{{ i }}"
+                pInputText
+                formControlName="varValue"
+                readonly="true"
+              />
+              <button
+                type="button"
+                pButton
+                icon="pi pi-trash"
+                class="p-button-danger"
+                (click)="removeTessVariable(i)"
+              ></button>
+            </div>
+          </div>
+        </div>
+
+        <div class="field col-offset-3 md:col-offset-2">
+          <div>
+            <input
+              id="newVarName"
+              type="text"
+              pInputText
+              formControlName="newVarName"
+              placeholder="Tesseract parameter"
+            />
+
+            <input
+              id="newVarValue"
+              pInputText
+              formControlName="newVarValue"
+              placeholder="Tesseract parameter's value"
+            />
+            <button
+              type="button"
+              pButton
+              icon="pi pi-plus"
+              class="p-button-success"
+              (click)="addTessVariable()"
+              [disabled]="ocrConfigForm.errors?.['bothFieldsRequired'] || !ocrConfigForm.get('newVarName')?.value || !ocrConfigForm.get('newVarValue')?.value"
+            ></button>
+          </div>
+
+          <div *ngIf="hasInvalidNewVarFields()">
+            <small class="p-error block"
+              >Both fields must be filled or both must be empty</small
+            >
+          </div>
+        </div>
+      </p-panel>
+    </div>
+
+    <div class="field col-12 md:col-4">
+      <label class="block" for="fileFormat">Output file format</label>
+      <p-select
+        id="fileFormat"
+        optionLabel="name"
+        [options]="fileFormats"
+        formControlName="fileFormat"
+        fluid
+      />
+    </div>
+    <div class="field col-12 md:col-4">
+      <label for="preProcessing" class="block">Pre processing</label>
+      <p-toggleButton
+        id="preProcessing"
+        formControlName="preProcessing"
+        onLabel="True"
+        offLabel="False"
+      />
+    </div>
+    <div class="field col-12 md:col-4">
+      <label for="mergeDocuments" class="block">Merge documents</label>
+      <p-toggleButton
+        id="mergeDocuments"
+        formControlName="mergeDocuments"
+        onLabel="True"
+        offLabel="False"
+      />
+    </div>
+  </div>
+  <div class="field">
+    <p-button
+      type="submit"
+      label="Save"
+      icon="pi pi-check"
+      size="large"
+      [disabled]="ocrConfigForm.invalid"
+    ></p-button>
+  </div>
+</form>
