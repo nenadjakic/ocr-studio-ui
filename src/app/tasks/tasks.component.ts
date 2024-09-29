@@ -32,7 +32,13 @@ import {
 } from '@angular/forms';
 import { SplitButtonModule } from 'primeng/splitbutton';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { OcrConfigFormComponent } from '../ocr-config-form/ocr-config-form.component';
+import {
+  OcrConfigFormComponent,
+  OcrConfigWithId,
+} from '../ocr-config-form/ocr-config-form.component';
+import { ConfirmationService, MessageService } from 'primeng/api';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-tasks',
@@ -56,12 +62,18 @@ import { OcrConfigFormComponent } from '../ocr-config-form/ocr-config-form.compo
     FloatLabelModule,
     ToggleButtonModule,
     OcrConfigFormComponent,
+    ConfirmDialogModule,
+    ToastModule
   ],
+  providers: [ConfirmationService],
   templateUrl: './tasks.component.html',
   styleUrl: './tasks.component.css',
 })
 export class TasksComponent {
+  confirmationService = inject(ConfirmationService);
+  messageService = inject(MessageService);
   taskControllerService = inject(TaskControllerService);
+
   formBuilder = inject(FormBuilder);
 
   pageNumber = 0;
@@ -74,9 +86,19 @@ export class TasksComponent {
 
   displayDetails = false;
   displayEditConfig = false;
-  selectedTask: Task | undefined;
+  selectedTask!: Task;
 
   form!: FormGroup;
+
+  get selectedOcrConfig(): OcrConfigWithId | undefined {
+    if (this.selectedTask) {
+      return {
+        ...this.selectedTask?.ocrConfig,
+        taskId: this.selectedTask?.id!!,
+      };
+    }
+    return undefined;
+  }
 
   ngOnInit() {
     this.load(0, this.pageSize);
@@ -111,8 +133,49 @@ export class TasksComponent {
     this.displayEditConfig = true;
   }
 
+  onOcrConfigSave() {
+    this.displayEditConfig = false;
+  }
+
   delete(task: Task) {
-    throw new Error('Method not implemented.');
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to delete the task:  ' + task.id!! + '?',
+      header: 'Delete Task Confirmation',
+      closable: true,
+      closeOnEscape: true,
+      icon: 'pi pi-info-circle',
+      acceptButtonProps: {
+        label: 'Delete',
+        severity: 'danger',
+      },
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        outlined: true,
+      },
+      accept: () => {        
+        this.taskControllerService.deleteTask(task.id!!).subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Task successfuly deleted.',
+              life: 3000,
+            });
+            this.load(this.pageNumber, this.pageSize);
+          },
+          error: (err) => {
+            console.log('Error ocurred', err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error ocurred. Task not deleted.',
+              life: 3000,
+            });
+          },
+        });
+      },
+    });
   }
 
   pageChange(event: any) {
@@ -160,6 +223,10 @@ export class TasksComponent {
   }
 
   canDelete(status?: OcrProgress.StatusEnum) {
+    return status === OcrProgress.StatusEnum.Created;
+  }
+
+  canStart(status?: OcrProgress.StatusEnum) {
     return status === OcrProgress.StatusEnum.Created;
   }
 
