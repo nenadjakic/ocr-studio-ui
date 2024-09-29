@@ -133,6 +133,10 @@ export class TasksComponent {
     this.displayEditConfig = true;
   }
 
+  onOcrConfigSave() {
+    this.displayEditConfig = false;
+  }
+
   delete(task: Task) {
     this.confirmationService.confirm({
       message: 'Are you sure you want to delete the task:  ' + task.id!! + '?',

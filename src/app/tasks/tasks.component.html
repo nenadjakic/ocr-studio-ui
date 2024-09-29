@@ -233,6 +233,7 @@
       *ngIf="selectedTask"
       [model]="selectedTask.ocrConfig!!"
       [taskId]="selectedTask.id!!"
+      (save)="onOcrConfigSave()"
     ></app-ocr-config-form>
   </p-dialog>
 

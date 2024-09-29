@@ -1,9 +1,12 @@
 import {
   Component,
+  EventEmitter,
+  Inject,
   inject,
   Input,
   OnChanges,
   OnInit,
+  Output,
   SimpleChanges,
   ViewEncapsulation,
 } from '@angular/core';
@@ -19,7 +22,7 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
-import { OcrConfig } from '../core/modules/openapi';
+import { OcrConfig, TaskControllerService } from '../core/modules/openapi';
 
 import { CommonModule, NgFor, NgIf } from '@angular/common';
 import { InputTextModule } from 'primeng/inputtext';
@@ -29,6 +32,11 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { PanelModule } from 'primeng/panel';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
+import { MessageService } from 'primeng/api';
+
+export interface OcrConfigWithId extends OcrConfig {
+  taskId: string;
+}
 
 @Component({
   selector: 'app-ocr-config-form',
@@ -49,16 +57,21 @@ import { ButtonModule } from 'primeng/button';
   ],
   templateUrl: './ocr-config-form.component.html',
   styleUrl: './ocr-config-form.component.css',
-  encapsulation: ViewEncapsulation.Emulated,
 })
 export class OcrConfigFormComponent implements OnInit, OnChanges {
+  messageService = inject(MessageService);
+  taskControllerService = inject(TaskControllerService);
+
   @Input() model!: OcrConfig;
+  @Input() taskId!: string;
+
+  @Output() save: EventEmitter<void> = new EventEmitter<void>();
 
   formBuilder = inject(FormBuilder);
   ocrConfigForm!: FormGroup;
 
   ngOnInit(): void {
-    this.createOcrConfigFormModel(null);
+    this.createOcrConfigFormModel();
     if (this.model) {
       this.editConfig(this.model);
     }
@@ -69,41 +82,61 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
       this.editConfig(this.model);
     }
   }
-  /*
-  const transformedObject = {
-    [inputObject.varName]: inputObject.varValue
-  };
-  */
+  
   onSave() {
     if (this.ocrConfigForm.valid) {
-      // Čitaj sve vrednosti iz forme
       const formValues = this.ocrConfigForm.value;
 
       console.log('Saving data:', formValues);
 
-      // Primer: Čitanje pojedinačnih svojstava
+      const taskId = formValues.taskId;
       const language = formValues.language;
-      const ocrEngineMode = formValues.ocrEngineMode;
-      const pageSegmentationMode = formValues.pageSegmentationMode;
+      const ocrEngineMode = formValues.ocrEngineMode.code;
+      const pageSegmentationMode = formValues.pageSegmentationMode.code;
       const preProcessing = formValues.preProcessing;
-      const fileFormat = formValues.fileFormat;
+      const fileFormat = formValues.fileFormat.code;
       const mergeDocuments = formValues.mergeDocuments;
 
-      // Čitanje Tesseract varijabli
-      const tessVariables = formValues.tessVariables.map(
-        (variable: { varName: any; varValue: any }) => ({
-          name: variable.varName,
-          value: variable.varValue,
-        })
+      const tessVariables: { [key: string]: string; } = formValues.tessVariables.reduce(
+        (acc: { [key: string]: string }, variable: { varName: any; varValue: any }) => {
+          acc[variable.varName] = variable.varValue;
+          return acc;
+        },
+        {}
       );
 
-      // Logika za slanje podataka na server (npr. putem servisa)
-      // this.yourService.saveConfig(formValues).subscribe(response => {
-      //   console.log('Configuration saved:', response);
-      // });
+      this.taskControllerService
+        .updateTaskConfig(taskId, {
+          language: language,
+          ocrEngineMode: ocrEngineMode,
+          pageSegmentationMode: pageSegmentationMode,
+          preProcessing: preProcessing,
+          fileFormat: fileFormat,
+          mergeDocuments: mergeDocuments,
+          tessVariables: tessVariables
+        })
+        .subscribe({
+          next: () => {
+            this.messageService.add({
+              severity: 'success',
+              summary: 'Successful',
+              detail: 'Task\'s ocr configuration successfuly updated.',
+              life: 3000,
+            });
+            this.save.emit();
+          },
+          error: (err) => {
+            console.log(err);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Error ocurred.',
+              life: 3000,
+            });
+          },
+        });
     } else {
       console.log('Form is not valid');
-      // Obeleži polja koja su nevalidna (opcionalno)
       this.ocrConfigForm.markAllAsTouched();
     }
   }
@@ -119,6 +152,7 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
       name: this.formatName(value),
     })
   );
+
   fileFormats = Object.values(OcrConfig.FileFormatEnum).map((value) => ({
     code: value,
     name: this.formatName(value),
@@ -145,24 +179,21 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
     };
   }
 
-  createOcrConfigFormModel(model: OcrConfig | null) {
+  createOcrConfigFormModel() {
     this.ocrConfigForm = this.formBuilder.group({
-      language: [model?.language, Validators.required],
+      taskId: [null],
+      language: [null, Validators.required],
       ocrEngineMode: [
-        model && model.ocrEngineMode
-          ? this.toCodeName(model.ocrEngineMode)
-          : this.toCodeName(OcrConfig.OcrEngineModeEnum.Default),
+        this.toCodeName(OcrConfig.OcrEngineModeEnum.Default),
         Validators.required,
       ],
       pageSegmentationMode: [
-        model && model.pageSegmentationMode
-          ? this.toCodeName(model.pageSegmentationMode)
-          : this.toCodeName(OcrConfig.PageSegmentationModeEnum._3),
+        this.toCodeName(OcrConfig.PageSegmentationModeEnum._3),
         Validators.required,
       ],
       tessVariables: this.formBuilder.array([]),
       preProcessing: [null, Validators.required],
-      fileFormat: [model && model.fileFormat, Validators.required],
+      fileFormat: [null, Validators.required],
       mergeDocuments: [null, Validators.required],
       newVarName: [null],
       newVarValue: [null],
@@ -205,8 +236,7 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
     return this.ocrConfigForm.get('newVarValue')!;
   }
 
-  addTessVariable(): void {
-    //if (this.ocrConfigForm.valid) {
+  addTessVariable(): void {    
     const newVariable = this.formBuilder.group({
       varName: new FormControl(
         this.ocrConfigForm.get('newVarName')?.value,
@@ -222,7 +252,6 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
 
     this.ocrConfigForm.get('newVarName')?.reset();
     this.ocrConfigForm.get('newVarValue')?.reset();
-    //}
   }
 
   removeTessVariable(index: number) {
@@ -230,8 +259,6 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
   }
 
   editConfig(model: OcrConfig) {
-    console.log('tess', model);
-
     this.tessVariables.clear();
     for (const key in model.tessVariables) {
       const variableGroup = this.formBuilder.group({
@@ -241,10 +268,10 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
       this.tessVariables.push(variableGroup);
     }
     this.ocrConfigForm.patchValue({
+      taskId: this.taskId,
       language: model.language,
       ocrEngineMode: this.toCodeName(model.ocrEngineMode!!),
       pageSegmentationMode: this.toCodeName(model.pageSegmentationMode!!),
-
       preProcessing: model.preProcessing,
       fileFormat: this.toCodeName(model.fileFormat!!),
       mergeDocuments: model.mergeDocuments,
