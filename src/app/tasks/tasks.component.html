@@ -1,256 +1,274 @@
-<p-table
-  [value]="tasks"
-  dataKey="id"
-  size="small"
-  stripedRows
-  [tableStyle]="{ 'min-width': '60rem' }"
-  [paginator]="true"
-  [rows]="25"
-  [rowsPerPageOptions]="[25, 50, 75, 100]"
-  (onPage)="pageChange($event)"
-  [expandedRowKeys]="expandedRows"
->
-  <ng-template pTemplate="caption">
-    <div class="flex justify-content-between align-items-center">
-      <span class="font-bold">Tasks</span>
-      <p-splitButton
-        icon="pi pi-plus"
-        label="Add"
-        [model]="[{ label: 'Drafted task ...' }, { label: 'Task ...' }]"
-      />
+<div>
+  <p-confirmDialog [style]="{ width: '450px' }" />
+  <p-table
+    [value]="tasks"
+    dataKey="id"
+    size="small"
+    stripedRows
+    [tableStyle]="{ 'min-width': '60rem' }"
+    [paginator]="true"
+    [rows]="25"
+    [rowsPerPageOptions]="[25, 50, 75, 100]"
+    (onPage)="pageChange($event)"
+    [expandedRowKeys]="expandedRows"
+  >
+    <ng-template pTemplate="caption">
+      <div class="flex justify-content-between align-items-center">
+        <span class="font-bold">Tasks</span>
+        <p-splitButton
+          icon="pi pi-plus"
+          label="Add"
+          [model]="[{ label: 'Drafted task ...' }, { label: 'Task ...' }]"
+        />
+      </div>
+    </ng-template>
+    <ng-template pTemplate="header">
+      <tr>
+        <th style="width: 5rem"></th>
+        <th style="width: 25rem">Id</th>
+        <th>Name</th>
+        <th style="width: 15rem">Scheduled at</th>
+        <th style="width: 10rem; text-align: right">Document count</th>
+        <th style="width: 10rem">Status</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-task let-expanded="expanded">
+      <tr>
+        <td>
+          <p-button
+            type="button"
+            pRipple
+            [pRowToggler]="task"
+            [text]="true"
+            [rounded]="true"
+            [plain]="true"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
+          />
+        </td>
+        <td>{{ toTask(task).id }}</td>
+        <td>{{ toTask(task).name }}</td>
+        <td>
+          {{
+            toTask(task).schedulerConfig?.startDateTime
+              ? (toTask(task).schedulerConfig?.startDateTime
+                | date : 'yyyy-MM-dd HH:mm:ss')
+              : 'N/A'
+          }}
+        </td>
+        <td style="text-align: right">
+          {{ getInDocumentCount(toTask(task)) }}
+        </td>
+        <td>
+          <p-tag
+            [value]="getOcrStatusText(toTask(task).ocrProgress?.status)"
+            [severity]="getOcrStatusSeverity(toTask(task).ocrProgress?.status)"
+          />
+        </td>
+        <td style="display: flex; gap: 0.25rem">
+          <p-button
+            pRipple
+            icon="pi pi-pencil"
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            severity="success"
+            size="small"
+            [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
+            (click)="edit(toTask(task))"
+          />
+
+          <p-button
+            pRipple
+            icon="pi pi-cog"
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            severity="success"
+            size="small"
+            [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
+            (click)="showEditConfig(toTask(task))"
+          />
+
+          <p-button
+            pRipple
+            icon="pi pi-trash"
+            severity="danger"
+            [rounded]="true"
+            [outlined]="true"
+            [disabled]="!canDelete(toTask(task).ocrProgress?.status)"
+            (click)="delete(toTask(task))"
+            size="small"
+          />
+          <p-button
+            pRipple
+            icon="pi pi-ellipsis-h"
+            [rounded]="true"
+            [outlined]="true"
+            (click)="showDetails(toTask(task))"
+          />
+          <p-button
+            pRipple
+            icon="pi pi-play"
+            class="mr-2"
+            [rounded]="true"
+            [outlined]="true"
+            severity="success"
+            size="small"
+            [disabled]="!canStart(toTask(task).ocrProgress?.status)"
+            (click)="showEditConfig(toTask(task))"
+          ></p-button>
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="rowexpansion" let-task>
+      <tr>
+        <td colspan="7">
+          <div class="p-4">
+            <p-table size="small" [value]="task.inDocuments" dataKey="id">
+              <ng-template pTemplate="header">
+                <tr>
+                  <th style="width: 5rem"></th>
+                  <th>Original file name</th>
+                  <th>Randomized file name</th>
+                  <th>Output document file name</th>
+                  <th style="width: 4rem"></th>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="body" let-document>
+                <tr>
+                  <td></td>
+                  <td>{{ toDocument(document).originalFileName }}</td>
+                  <td>{{ toDocument(document).randomizedFileName }}</td>
+                  <td>
+                    {{ toDocument(document).outDocument?.outputFileName }}
+                  </td>
+                </tr>
+              </ng-template>
+              <ng-template pTemplate="emptymessage">
+                <tr>
+                  <td colspan="6">
+                    There are no input documents for this task yet.
+                  </td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+
+  <p-dialog header="Details" [modal]="true" [style]="{ width: '35rem' }">
+    <div *ngIf="selectedTask">
+      <div class="field" style="margin-bottom: 10px">
+        <label for="id">Id</label>
+        <input
+          id="id"
+          type="text"
+          pInputText
+          disabled
+          [(ngModel)]="selectedTask.id"
+          fluid
+          size="small"
+        />
+      </div>
+
+      <div class="field" style="margin-bottom: 10px">
+        <label for="name">Name</label>
+        <input
+          id="name"
+          type="text"
+          pInputText
+          disabled
+          [(ngModel)]="selectedTask.name"
+          fluid
+          size="small"
+        />
+      </div>
+
+      <div class="field" style="margin-bottom: 10px">
+        <label
+          for="createdBy"
+          class="font-bold mb-2 block"
+          style="margin-right: 10px; font-size: 14pt"
+          >Created By</label
+        >
+        <input
+          id="createdBy"
+          type="text"
+          pInputText
+          disabled="true"
+          [(ngModel)]="selectedTask.createdBy"
+          fluid="true"
+        />
+      </div>
+
+      <div class="flex flex-col gap-2" style="margin-bottom: 10px">
+        <label
+          for="createdDate"
+          class="font-bold mb-2 block"
+          style="margin-right: 10px; font-size: 14pt"
+          >Created Date</label
+        >
+        <input
+          id="createdDate"
+          type="datetime"
+          pInputText
+          disabled="true"
+          [(ngModel)]="selectedTask.createdDate"
+          fluid="true"
+        />
+      </div>
     </div>
-  </ng-template>
-  <ng-template pTemplate="header">
-    <tr>
-      <th style="width: 5rem"></th>
-      <th style="width: 25rem">Id</th>
-      <th>Name</th>
-      <th style="width: 15rem">Scheduled at</th>
-      <th style="width: 10rem; text-align: right">Document count</th>
-      <th style="width: 10rem">Status</th>
-      <th></th>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="body" let-task let-expanded="expanded">
-    <tr>
-      <td>
-        <p-button
-          type="button"
-          pRipple
-          [pRowToggler]="task"
-          [text]="true"
-          [rounded]="true"
-          [plain]="true"
-          [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-        />
-      </td>
-      <td>{{ toTask(task).id }}</td>
-      <td>{{ toTask(task).name }}</td>
-      <td>
-        {{
-          toTask(task).schedulerConfig?.startDateTime
-            ? (toTask(task).schedulerConfig?.startDateTime
-              | date : 'yyyy-MM-dd HH:mm:ss')
-            : 'N/A'
-        }}
-      </td>
-      <td style="text-align: right">{{ getInDocumentCount(toTask(task)) }}</td>
-      <td>
-        <p-tag
-          [value]="getOcrStatusText(toTask(task).ocrProgress?.status)"
-          [severity]="getOcrStatusSeverity(toTask(task).ocrProgress?.status)"
-        />
-      </td>
-      <td style="display: flex; gap: 0.25rem">
-        <p-button
-          pRipple
-          icon="pi pi-pencil"
-          class="mr-2"
-          [rounded]="true"
-          [outlined]="true"
-          severity="success"
-          size="small"
-          [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
-          (click)="edit(toTask(task))"
-        />
+  </p-dialog>
 
-        <p-button
-          pRipple
-          icon="pi pi-cog"
-          class="mr-2"
-          [rounded]="true"
-          [outlined]="true"
-          severity="success"
-          size="small"
-          [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
-          (click)="showEditConfig(toTask(task))"
-        />
+  <p-dialog
+    header="OCR Configuration"
+    [(visible)]="displayEditConfig"
+    [modal]="true"
+    [style]="{ width: '50rem' }"
+  >
+    <app-ocr-config-form
+      *ngIf="selectedTask"
+      [model]="selectedTask.ocrConfig!!"
+      [taskId]="selectedTask.id!!"
+    ></app-ocr-config-form>
+  </p-dialog>
 
-        <p-button
-          pRipple
-          icon="pi pi-trash"
-          severity="danger"
-          [rounded]="true"
-          [outlined]="true"
-          [disabled]="!canDelete(toTask(task).ocrProgress?.status)"
-          (click)="delete(toTask(task))"
-          size="small"
-        />
-        <p-button
-          pRipple
-          icon="pi pi-ellipsis-h"
-          [rounded]="true"
-          [outlined]="true"
-          (click)="showDetails(toTask(task))"
-        ></p-button>
-      </td>
-    </tr>
-  </ng-template>
-  <ng-template pTemplate="rowexpansion" let-task>
-    <tr>
-      <td colspan="7">
-        <div class="p-4">
-          <p-table size="small" [value]="task.inDocuments" dataKey="id">
-            <ng-template pTemplate="header">
-              <tr>
-                <th style="width: 5rem"></th>
-                <th>Original file name</th>
-                <th>Randomized file name</th>
-                <th>Output document file name</th>
-                <th style="width: 4rem"></th>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="body" let-document>
-              <tr>
-                <td></td>
-                <td>{{ toDocument(document).originalFileName }}</td>
-                <td>{{ toDocument(document).randomizedFileName }}</td>
-                <td>
-                  {{ toDocument(document).outDocument?.outputFileName }}
-                </td>
-              </tr>
-            </ng-template>
-            <ng-template pTemplate="emptymessage">
-              <tr>
-                <td colspan="6">
-                  There are no input documents for this task yet.
-                </td>
-              </tr>
-            </ng-template>
-          </p-table>
-        </div>
-      </td>
-    </tr>
-  </ng-template>
-</p-table>
-
-<p-dialog header="Details" [modal]="true" [style]="{ width: '35rem' }">
-  <div *ngIf="selectedTask">
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
     <div class="field" style="margin-bottom: 10px">
-      <label for="id">Id</label>
+      <label for="name">Id</label>
       <input
         id="id"
+        formControlName="id"
         type="text"
         pInputText
-        disabled
-        [(ngModel)]="selectedTask.id"
         fluid
         size="small"
+        readonly="true"
       />
     </div>
-
     <div class="field" style="margin-bottom: 10px">
-      <label for="name">Name</label>
+      <label for="name">Name:</label>
       <input
         id="name"
         type="text"
         pInputText
-        disabled
-        [(ngModel)]="selectedTask.name"
+        formControlName="name"
         fluid
         size="small"
       />
     </div>
 
-    <div class="field" style="margin-bottom: 10px">
-      <label
-        for="createdBy"
-        class="font-bold mb-2 block"
-        style="margin-right: 10px; font-size: 14pt"
-        >Created By</label
-      >
-      <input
-        id="createdBy"
-        type="text"
-        pInputText
-        disabled="true"
-        [(ngModel)]="selectedTask.createdBy"
-        fluid="true"
-      />
-    </div>
+    <!-- OCR Config -->
+    <h3>OCR Config</h3>
 
-    <div class="flex flex-col gap-2" style="margin-bottom: 10px">
-      <label
-        for="createdDate"
-        class="font-bold mb-2 block"
-        style="margin-right: 10px; font-size: 14pt"
-        >Created Date</label
-      >
-      <input
-        id="createdDate"
-        type="datetime"
-        pInputText
-        disabled="true"
-        [(ngModel)]="selectedTask.createdDate"
-        fluid="true"
-      />
-    </div>
-  </div>
-</p-dialog>
+    <!-- Scheduler Config -->
 
-<p-dialog
-  header="OCR Configuration"
-  [(visible)]="displayEditConfig"
-  [modal]="true"
-  [style]="{ width: '50rem' }"
->
-  <app-ocr-config-form
-    [model]="selectedTask?.ocrConfig!!"
-  ></app-ocr-config-form>
-</p-dialog>
+    <!-- Dokumenti -->
+    <h3>Documents</h3>
 
-<form [formGroup]="form" (ngSubmit)="onSubmit()">
-  <div class="field" style="margin-bottom: 10px">
-    <label for="name">Id</label>
-    <input
-      id="id"
-      formControlName="id"
-      type="text"
-      pInputText
-      fluid
-      size="small"
-      readonly="true"
-    />
-  </div>
-  <div class="field" style="margin-bottom: 10px">
-    <label for="name">Name:</label>
-    <input
-      id="name"
-      type="text"
-      pInputText
-      formControlName="name"
-      fluid
-      size="small"
-    />
-  </div>
-
-  <!-- OCR Config -->
-  <h3>OCR Config</h3>
-
-  <!-- Scheduler Config -->
-
-  <!-- Dokumenti -->
-  <h3>Documents</h3>
-
-  <button type="submit">Submit</button>
-</form>
+    <button type="submit">Submit</button>
+  </form>
+</div>

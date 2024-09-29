@@ -7,10 +7,10 @@ import { SidebarModule } from 'primeng/sidebar';
 import { DrawerModule } from 'primeng/drawer';
 import { MenuItem, PrimeNGConfig } from 'primeng/api';
 import { Aura } from 'primeng/themes/aura';
-import { BaseStyle } from 'primeng/base';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
+import { ToastModule } from 'primeng/toast';
 
 @Component({
   selector: 'app-root',
@@ -24,6 +24,7 @@ import { AvatarGroupModule } from 'primeng/avatargroup';
     MenubarModule,
     AvatarModule,
     AvatarGroupModule,
+    ToastModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
