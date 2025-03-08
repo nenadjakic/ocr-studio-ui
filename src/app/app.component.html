@@ -16,28 +16,19 @@
     </div>
   </p-toolbar>
   <p-menubar [model]="items">
-    <ng-template pTemplate="end">
+    <ng-template #end>
       <div class="flex items-center gap-2">
         <p-avatar icon="pi pi-user" shape="circle" />
       </div>
     </ng-template>
   </p-menubar>
   <p-drawer [(visible)]="sidebarVisible">
-    <ng-template pTemplate="headless">
+    <ng-template #headless>
       <div class="flex flex-col h-full">
         <div class="flex items-center justify-between px-6 pt-4 shrink-0">
           <span class="inline-flex items-center gap-4">
             <span class="font-semibold text-2xl text-primary">Logo</span>
           </span>
-          <span>
-            <p-button
-              size="small"
-              icon="pi pi-times"
-              text
-              rounded="true"
-              outlined="true"
-            ></p-button
-          ></span>
         </div>
       </div>
     </ng-template>

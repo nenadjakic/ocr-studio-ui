@@ -1,12 +1,17 @@
 import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { PanelModule } from 'primeng/panel';
-import { TableModule } from 'primeng/table';
+import {
+  TableModule,
+  TableRowCollapseEvent,
+  TableRowExpandEvent,
+} from 'primeng/table';
 import {
   Document,
   OcrConfig,
   OcrProgress,
   Task,
   TaskControllerService,
+  TaskDraftRequest,
 } from '../core/modules/openapi';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -39,6 +44,12 @@ import {
 import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
+import { FileUpload } from 'primeng/fileupload';
+
+interface UploadEvent {
+  originalEvent: Event;
+  files: File[];
+}
 
 @Component({
   selector: 'app-tasks',
@@ -63,13 +74,15 @@ import { ToastModule } from 'primeng/toast';
     ToggleButtonModule,
     OcrConfigFormComponent,
     ConfirmDialogModule,
-    ToastModule
+    ToastModule,
+    FileUpload,
   ],
   providers: [ConfirmationService],
   templateUrl: './tasks.component.html',
   styleUrl: './tasks.component.css',
 })
 export class TasksComponent {
+  [x: string]: any;
   confirmationService = inject(ConfirmationService);
   messageService = inject(MessageService);
   taskControllerService = inject(TaskControllerService);
@@ -86,9 +99,18 @@ export class TasksComponent {
 
   displayDetails = false;
   displayEditConfig = false;
+  displayDraftTask = false;
+  displayUpload = false;
   selectedTask!: Task;
 
   form!: FormGroup;
+
+  addButtonItems = [
+    { label: 'Draft task ...', command: () => (this.displayDraftTask = true) },
+    { label: 'Task ...' },
+  ];
+
+  uploadedFiles: any[] = [];
 
   get selectedOcrConfig(): OcrConfigWithId | undefined {
     if (this.selectedTask) {
@@ -111,6 +133,24 @@ export class TasksComponent {
     this.createFormModel(null);
   }
 
+  onRowExpand(event: TableRowExpandEvent) {
+    this.messageService.add({
+      severity: 'info',
+      summary: 'Product Expanded',
+      detail: event.data.name,
+      life: 3000,
+    });
+  }
+
+  onRowCollapse(event: TableRowCollapseEvent) {
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Product Collapsed',
+      detail: event.data.name,
+      life: 3000,
+    });
+  }
+
   createFormModel(model: Task | null) {
     this.form = this.formBuilder.group({
       id: [model?.id],
@@ -118,21 +158,56 @@ export class TasksComponent {
     });
   }
 
-  onSubmit() {
+  onAddDraftTask() {
     if (this.form.valid) {
       console.log(this.form.value);
+      var taskDraftRequest: TaskDraftRequest = {
+        name: this.form.value.name,
+      };
+      this.taskControllerService.createDraftTask(taskDraftRequest).subscribe({
+        next: () => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Successful',
+            detail: 'Draft task successfuly added.',
+            life: 3000,
+          });
+
+          this.pageNumber = 0;
+          this.pageChange({
+            first: this.pageNumber * this.pageSize,
+            rows: this.pageSize,
+          });
+          this.displayDraftTask = false;
+        },
+        error: (err) => {
+          console.log('Error ocurred', err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Error ocurred. Draft task not added.',
+            life: 3000,
+          });
+        },
+      });
     } else {
       console.log('Form is invalid');
     }
   }
 
-  edit(task: Task) {}
+  edit(task: Task) {
+    this.selectedTask = task;
+  }
 
   showEditConfig(task: Task) {
     this.selectedTask = task;
     this.displayEditConfig = true;
   }
 
+  showUpload(task: Task) {
+    this.selectedTask = task;
+    this.displayUpload = true;
+  }
   onOcrConfigSave() {
     this.displayEditConfig = false;
   }
@@ -153,7 +228,7 @@ export class TasksComponent {
         severity: 'secondary',
         outlined: true,
       },
-      accept: () => {        
+      accept: () => {
         this.taskControllerService.deleteTask(task.id!!).subscribe({
           next: () => {
             this.messageService.add({
@@ -241,5 +316,75 @@ export class TasksComponent {
   showDetails(task: Task) {
     this.selectedTask = task;
     this.displayDetails = true;
+  }
+
+  toFormated(value: string | null | undefined) {
+    if (value != null) {
+      return Utils.formatName(value);
+    } else {
+      return 'N/A';
+    }
+  }
+  schedule(event: Event) {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want start OCR process?',
+      header: 'Start OCR process',
+      closable: true,
+      closeOnEscape: true,
+      icon: 'pi pi-exclamation-triangle',
+      rejectButtonProps: {
+        label: 'No',
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptButtonProps: {
+        label: 'Yes',
+      },
+      accept: () => {
+        this.messageService.add({
+          severity: 'info',
+          summary: 'Confirmed',
+          detail: 'You have accepted',
+        });
+      },
+      reject: () => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Rejected',
+          detail: 'You have rejected',
+          life: 3000,
+        });
+      },
+    });
+  }
+
+  onUpload(event: UploadEvent | any) {
+    for (let file of event.files) {
+      this.uploadedFiles.push(file);
+    }
+    this.taskControllerService
+      .uploadFiles(this.selectedTask.id!!, this.uploadedFiles)
+      .subscribe({
+        next: (_) => {
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Files upload',
+            detail: 'Files successfully uploaded.',
+            life: 3000
+          });
+          this.load(this.pageNumber, this.pageSize);
+        },
+        error: (err) => {
+          console.error(err);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Files upload problem',
+            detail: 'Problem during file upload.',
+            life: 3000,
+          });
+        },
+        complete: () => {},
+      });
+    this.displayUpload = false;
   }
 }

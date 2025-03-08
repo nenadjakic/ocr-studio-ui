@@ -1,275 +1,195 @@
 <div>
   <p-confirmDialog [style]="{ width: '450px' }" />
-  <p-table
-    [value]="tasks"
-    dataKey="id"
-    size="small"
-    stripedRows
-    [tableStyle]="{ 'min-width': '60rem' }"
-    [paginator]="true"
-    [rows]="25"
-    [rowsPerPageOptions]="[25, 50, 75, 100]"
-    (onPage)="pageChange($event)"
-    [expandedRowKeys]="expandedRows"
-  >
-    <ng-template pTemplate="caption">
+  <p-table [value]="tasks" dataKey="id" size="small" stripedRows [tableStyle]="{ 'min-width': '60rem' }"
+    [paginator]="true" [rows]="25" [rowsPerPageOptions]="[25, 50, 75, 100]" (onPage)="pageChange($event)"
+    [expandedRowKeys]="expandedRows">
+    <ng-template #caption>
       <div class="flex justify-content-between align-items-center">
         <span class="font-bold">Tasks</span>
-        <p-splitButton
-          icon="pi pi-plus"
-          label="Add"
-          [model]="[{ label: 'Drafted task ...' }, { label: 'Task ...' }]"
-        />
+        <p-splitButton icon="pi pi-plus" label="Add" [model]="addButtonItems" />
       </div>
     </ng-template>
-    <ng-template pTemplate="header">
+    <ng-template #header>
       <tr>
         <th style="width: 5rem"></th>
         <th style="width: 25rem">Id</th>
-        <th>Name</th>
+        <th style="width: 35rem">Name</th>
         <th style="width: 15rem">Scheduled at</th>
         <th style="width: 10rem; text-align: right">Document count</th>
         <th style="width: 10rem">Status</th>
         <th></th>
       </tr>
     </ng-template>
-    <ng-template pTemplate="body" let-task let-expanded="expanded">
+    <ng-template #body let-task let-expanded="expanded">
       <tr>
         <td>
-          <p-button
-            type="button"
-            pRipple
-            [pRowToggler]="task"
-            [text]="true"
-            [rounded]="true"
-            [plain]="true"
-            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"
-          />
+          <p-button type="button" pRipple [pRowToggler]="task" [text]="true" [rounded]="true" [plain]="true"
+            [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'" />
         </td>
         <td>{{ toTask(task).id }}</td>
         <td>{{ toTask(task).name }}</td>
         <td>
           {{
-            toTask(task).schedulerConfig?.startDateTime
-              ? (toTask(task).schedulerConfig?.startDateTime
-                | date : 'yyyy-MM-dd HH:mm:ss')
-              : 'N/A'
+          toTask(task).schedulerConfig?.startDateTime
+          ? (toTask(task).schedulerConfig?.startDateTime
+          | date : 'yyyy-MM-dd HH:mm:ss')
+          : 'N/A'
           }}
         </td>
         <td style="text-align: right">
           {{ getInDocumentCount(toTask(task)) }}
         </td>
         <td>
-          <p-tag
-            [value]="getOcrStatusText(toTask(task).ocrProgress?.status)"
-            [severity]="getOcrStatusSeverity(toTask(task).ocrProgress?.status)"
-          />
+          <p-tag [value]="getOcrStatusText(toTask(task).ocrProgress?.status)"
+            [severity]="getOcrStatusSeverity(toTask(task).ocrProgress?.status)" />
         </td>
         <td style="display: flex; gap: 0.25rem">
-          <p-button
-            pRipple
-            icon="pi pi-pencil"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            severity="success"
-            size="small"
-            [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
-            (click)="edit(toTask(task))"
-          />
+          <p-button pRipple icon="pi pi-pencil" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+            size="small" [disabled]="!canEdit(toTask(task).ocrProgress?.status)" (click)="edit(toTask(task))" />
 
-          <p-button
-            pRipple
-            icon="pi pi-cog"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            severity="success"
-            size="small"
-            [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
-            (click)="showEditConfig(toTask(task))"
-          />
+          <p-button pRipple icon="pi pi-cog" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+            size="small" [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
+            (click)="showEditConfig(toTask(task))" />
 
-          <p-button
-            pRipple
-            icon="pi pi-trash"
-            severity="danger"
-            [rounded]="true"
-            [outlined]="true"
-            [disabled]="!canDelete(toTask(task).ocrProgress?.status)"
-            (click)="delete(toTask(task))"
-            size="small"
-          />
-          <p-button
-            pRipple
-            icon="pi pi-ellipsis-h"
-            [rounded]="true"
-            [outlined]="true"
-            (click)="showDetails(toTask(task))"
-          />
-          <p-button
-            pRipple
-            icon="pi pi-play"
-            class="mr-2"
-            [rounded]="true"
-            [outlined]="true"
-            severity="success"
-            size="small"
-            [disabled]="!canStart(toTask(task).ocrProgress?.status)"
-            (click)="showEditConfig(toTask(task))"
-          ></p-button>
+          <p-button pRipple icon="pi pi-upload" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+            size="small" [disabled]="!canEdit(toTask(task).ocrProgress?.status)"
+            (click)="showUpload(toTask(task))" />
+
+
+          <p-button pRipple icon="pi pi-trash" severity="danger" [rounded]="true" [outlined]="true"
+            [disabled]="!canDelete(toTask(task).ocrProgress?.status)" (click)="delete(toTask(task))" size="small" />
+
+          <p-button pRipple icon="pi pi-ellipsis-h" [rounded]="true" [outlined]="true"
+            (click)="showDetails(toTask(task))" />
+
+          <p-button pRipple icon="pi pi-play" class="mr-2" [rounded]="true" [outlined]="true" severity="success"
+            size="small" [disabled]="!canStart(toTask(task).ocrProgress?.status)" (click)="schedule($event)"></p-button>
         </td>
       </tr>
     </ng-template>
-    <ng-template pTemplate="rowexpansion" let-task>
+    <ng-template #expandedrow let-task>
       <tr>
         <td colspan="7">
           <div class="p-4">
             <p-table size="small" [value]="task.inDocuments" dataKey="id">
-              <ng-template pTemplate="header">
-                <tr>
-                  <th style="width: 5rem"></th>
-                  <th>Original file name</th>
-                  <th>Randomized file name</th>
-                  <th>Output document file name</th>
-                  <th style="width: 4rem"></th>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="body" let-document>
-                <tr>
-                  <td></td>
-                  <td>{{ toDocument(document).originalFileName }}</td>
-                  <td>{{ toDocument(document).randomizedFileName }}</td>
-                  <td>
-                    {{ toDocument(document).outDocument?.outputFileName }}
-                  </td>
-                </tr>
-              </ng-template>
-              <ng-template pTemplate="emptymessage">
-                <tr>
-                  <td colspan="6">
-                    There are no input documents for this task yet.
-                  </td>
-                </tr>
-              </ng-template>
-            </p-table>
-          </div>
+              <ng-template #header>
+      <tr>
+        <th style="width: 5rem"></th>
+        <th>Original file name</th>
+        <th>Randomized file name</th>
+        <th>Output document file name</th>
+        <th style="width: 4rem"></th>
+      </tr>
+    </ng-template>
+    <ng-template #body let-document>
+      <tr>
+        <td></td>
+        <td>{{ toDocument(document).originalFileName }}</td>
+        <td>{{ toDocument(document).randomizedFileName }}</td>
+        <td>
+          {{ toDocument(document).outDocument?.outputFileName }}
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+      <tr>
+        <td></td>
+        <td colspan="5">
+          There are no input documents for this task yet.
         </td>
       </tr>
     </ng-template>
   </p-table>
+</div>
+</td>
+</tr>
+</ng-template>
+</p-table>
 
-  <p-dialog header="Details" [modal]="true" [style]="{ width: '35rem' }">
-    <div *ngIf="selectedTask">
-      <div class="field" style="margin-bottom: 10px">
-        <label for="id">Id</label>
-        <input
-          id="id"
-          type="text"
-          pInputText
-          disabled
-          [(ngModel)]="selectedTask.id"
-          fluid
-          size="small"
-        />
-      </div>
-
-      <div class="field" style="margin-bottom: 10px">
-        <label for="name">Name</label>
-        <input
-          id="name"
-          type="text"
-          pInputText
-          disabled
-          [(ngModel)]="selectedTask.name"
-          fluid
-          size="small"
-        />
-      </div>
-
-      <div class="field" style="margin-bottom: 10px">
-        <label
-          for="createdBy"
-          class="font-bold mb-2 block"
-          style="margin-right: 10px; font-size: 14pt"
-          >Created By</label
-        >
-        <input
-          id="createdBy"
-          type="text"
-          pInputText
-          disabled="true"
-          [(ngModel)]="selectedTask.createdBy"
-          fluid="true"
-        />
-      </div>
-
-      <div class="flex flex-col gap-2" style="margin-bottom: 10px">
-        <label
-          for="createdDate"
-          class="font-bold mb-2 block"
-          style="margin-right: 10px; font-size: 14pt"
-          >Created Date</label
-        >
-        <input
-          id="createdDate"
-          type="datetime"
-          pInputText
-          disabled="true"
-          [(ngModel)]="selectedTask.createdDate"
-          fluid="true"
-        />
-      </div>
+<p-dialog header="Details" [modal]="true" [(visible)]="displayDetails" [style]="{ width: '35rem' }">
+  <div *ngIf="selectedTask" class="formgrid grid">
+    <div class="field col-12 md:col-12">
+      <label for="id">Id</label>
+      <input id="id" type="text" pInputText disabled [(ngModel)]="selectedTask.id" fluid size="small" />
     </div>
-  </p-dialog>
 
-  <p-dialog
-    header="OCR Configuration"
-    [(visible)]="displayEditConfig"
-    [modal]="true"
-    [style]="{ width: '50rem' }"
-  >
-    <app-ocr-config-form
-      *ngIf="selectedTask"
-      [model]="selectedTask.ocrConfig!!"
-      [taskId]="selectedTask.id!!"
-      (save)="onOcrConfigSave()"
-    ></app-ocr-config-form>
-  </p-dialog>
+    <div class="field col-12 md:col-12">
+      <label for="name">Name</label>
+      <input id="name" type="text" pInputText disabled [(ngModel)]="selectedTask.name" fluid size="small" />
+    </div>
 
-  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <div class="field col-12 md:col-6">
+      <label for="createdBy">Created By</label>
+      <input id="createdBy" type="text" pInputText disabled="true" [(ngModel)]="selectedTask.createdBy" fluid="true" />
+    </div>
+
+    <div class="field col-12 md:col-6">
+      <label for="createdDate">Created Date</label>
+      <input id="createdDate" type="datetime" pInputText disabled="true" [(ngModel)]="selectedTask.createdDate"
+        fluid="true" />
+    </div>
+
+    <p-panel header="Ocr Configuration" class="field col-12 md:col-12">
+      <div class="formgrid grid">
+        <div class="field col-12 md:col-12">
+          <label for="language">Language</label>
+          <input id="language" pInputText disabled="true" [ngModel]="selectedTask.ocrConfig?.language || 'N/A'"
+            type="text" fluid />
+        </div>
+
+        <div class="field col-12 md:col-6">
+          <label class="block" for="ocrEngineMode">OCR Engine</label>
+          <input id="ocrEngineMode" pInputText disabled="true"
+            [ngModel]="toFormated(selectedTask.ocrConfig?.ocrEngineMode)" fluid />
+        </div>
+
+        <div class="field col-12 md:col-6">
+          <label class="block" for="pageSegmentationMode">Page Segmentation</label>
+          <input id="pageSegmentationMode" pInputText disabled="true"
+            [ngModel]="toFormated(selectedTask.ocrConfig?.pageSegmentationMode)" fluid />
+        </div>
+      </div>
+    </p-panel>
+
+  </div>
+</p-dialog>
+
+
+<p-dialog header="OCR Configuration" [(visible)]="displayEditConfig" [modal]="true" [style]="{ width: '50rem' }">
+  <app-ocr-config-form *ngIf="selectedTask" [model]="selectedTask.ocrConfig!!" [taskId]="selectedTask.id!!"
+    (save)="onOcrConfigSave()"></app-ocr-config-form>
+</p-dialog>
+
+<p-dialog header="Add draft task" [(visible)]="displayDraftTask" [modal]="true" [style]="{ width: '50rem' }">
+  <form [formGroup]="form" (ngSubmit)="onAddDraftTask()">
     <div class="field" style="margin-bottom: 10px">
       <label for="name">Id</label>
-      <input
-        id="id"
-        formControlName="id"
-        type="text"
-        pInputText
-        fluid
-        size="small"
-        readonly="true"
-      />
+      <input id="id" formControlName="id" type="text" pInputText fluid size="small" readonly="true" />
     </div>
     <div class="field" style="margin-bottom: 10px">
       <label for="name">Name:</label>
-      <input
-        id="name"
-        type="text"
-        pInputText
-        formControlName="name"
-        fluid
-        size="small"
-      />
+      <input id="name" type="text" pInputText formControlName="name" fluid size="small" />
     </div>
-
-    <!-- OCR Config -->
-    <h3>OCR Config</h3>
-
-    <!-- Scheduler Config -->
-
-    <!-- Dokumenti -->
-    <h3>Documents</h3>
-
-    <button type="submit">Submit</button>
+    <p-button icon="pi pi-check" label="Add" type="submit" />
   </form>
+</p-dialog>
+
+<p-dialog header="Upload files" [(visible)]="displayUpload" [modal]="true" [style]="{ width: '50rem' }">
+  <p-fileupload name="inputDocuments[]" 
+  (uploadHandler)="onUpload($event)" 
+  [multiple]="true" 
+  accept=".pdf,image/*" 
+  customUpload="true"
+  maxFileSize="1000000"
+    mode="advanced">
+    <ng-template #empty>
+      <div>Drag and drop files to here to upload.</div>
+    </ng-template>
+    <ng-template #content>
+      <ul *ngIf="uploadedFiles.length">
+        <li *ngFor="let file of uploadedFiles">{{ file.name }} - {{ file.size }} bytes</li>
+      </ul>
+    </ng-template>
+  </p-fileupload>
+</p-dialog>
 </div>
