@@ -5,12 +5,12 @@ import { ButtonModule } from 'primeng/button';
 import { ToolbarModule } from 'primeng/toolbar';
 import { SidebarModule } from 'primeng/sidebar';
 import { DrawerModule } from 'primeng/drawer';
-import { MenuItem, PrimeNGConfig } from 'primeng/api';
-import { Aura } from 'primeng/themes/aura';
+import { MenuItem } from 'primeng/api';
 import { MenubarModule } from 'primeng/menubar';
 import { AvatarModule } from 'primeng/avatar';
 import { AvatarGroupModule } from 'primeng/avatargroup';
 import { ToastModule } from 'primeng/toast';
+import { PrimeNG } from 'primeng/config';
 
 @Component({
   selector: 'app-root',
@@ -38,7 +38,5 @@ export class AppComponent {
     { label: 'OCR' },
   ];
 
-  constructor(private config: PrimeNGConfig) {
-    this.config.theme.set({ preset: Aura });
-  }
+  constructor(private primeng: PrimeNG) {}
 }

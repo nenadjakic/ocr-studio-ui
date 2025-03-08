@@ -33,6 +33,7 @@ import { PanelModule } from 'primeng/panel';
 import { DialogModule } from 'primeng/dialog';
 import { ButtonModule } from 'primeng/button';
 import { MessageService } from 'primeng/api';
+import { Utils } from '../utils/utils';
 
 export interface OcrConfigWithId extends OcrConfig {
   taskId: string;
@@ -58,7 +59,7 @@ export interface OcrConfigWithId extends OcrConfig {
   templateUrl: './ocr-config-form.component.html',
   styleUrl: './ocr-config-form.component.css',
 })
-export class OcrConfigFormComponent implements OnInit, OnChanges {
+export class OcrConfigFormComponent implements OnInit, OnChanges {  
   messageService = inject(MessageService);
   taskControllerService = inject(TaskControllerService);
 
@@ -143,29 +144,20 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
 
   ocrEngineModes = Object.values(OcrConfig.OcrEngineModeEnum).map((value) => ({
     code: value,
-    name: this.formatName(value),
+    name: Utils.formatName(value),
   }));
 
   pageSegmentationModes = Object.values(OcrConfig.PageSegmentationModeEnum).map(
     (value) => ({
       code: value,
-      name: this.formatName(value),
+      name: Utils.formatName(value),
     })
   );
 
   fileFormats = Object.values(OcrConfig.FileFormatEnum).map((value) => ({
     code: value,
-    name: this.formatName(value),
+    name: Utils.formatName(value),
   }));
-
-  formatName(value: string): string {
-    return value
-      .replace('_', ' ')
-      .toLowerCase()
-      .split(' ')
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
-  }
 
   toCodeName(
     value:
@@ -175,7 +167,7 @@ export class OcrConfigFormComponent implements OnInit, OnChanges {
   ) {
     return {
       code: value,
-      name: this.formatName(value),
+      name: Utils.formatName(value),
     };
   }
 

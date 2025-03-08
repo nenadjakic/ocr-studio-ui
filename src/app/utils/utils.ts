@@ -25,4 +25,13 @@ export class Utils {
         return 'secondary';
     }
   }
+
+  static formatName(value: string): string {
+      return value
+        .replace('_', ' ')
+        .toLowerCase()
+        .split(' ')
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
+    }
 }
