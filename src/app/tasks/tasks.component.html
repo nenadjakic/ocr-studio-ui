@@ -85,7 +85,11 @@
       <tr>
         <td></td>
         <td>{{ toDocument(document).originalFileName }}</td>
-        <td>{{ toDocument(document).randomizedFileName }}</td>
+        <td>
+          <p-button [link]="true" (click)="onDownload(task.id!!, toDocument(document).randomizedFileName!!)">
+            {{ toDocument(document).randomizedFileName }}
+          </p-button>
+        </td>
         <td>
           {{ toDocument(document).outDocument?.outputFileName }}
         </td>

@@ -45,6 +45,7 @@ import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { ToastModule } from 'primeng/toast';
 import { FileUpload } from 'primeng/fileupload';
+import { HttpResponse } from '@angular/common/http';
 
 interface UploadEvent {
   originalEvent: Event;
@@ -386,5 +387,40 @@ export class TasksComponent {
         complete: () => {},
       });
     this.displayUpload = false;
+  }
+
+  onDownload(id: string, randomizedFileName: string) {
+    this.taskControllerService.downloadInDocumentByIdAndRandomizedName(id, randomizedFileName, 'response').subscribe({
+      next: (response) => {
+        const blob = response.body!!;
+        const contentDisposition = response.headers.get('content-disposition');
+        let fileName = 'downloaded-file';
+
+        if (contentDisposition) {
+          const matches = /filename="([^"]+)"/.exec(contentDisposition);
+          if (matches != null && matches[1]) {
+            fileName = matches[1];
+          }
+        }
+
+        const a = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        a.href = objectUrl;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(objectUrl);
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Download Error',
+          detail: 'There was an error downloading the file.',
+          life: 3000,
+        });
+      },
+      complete: () => {},
+    });
+
   }
 }
