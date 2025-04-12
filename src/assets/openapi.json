@@ -1022,6 +1022,20 @@
           }
         }
       },
+      "DocumentMutableList": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            }
+          },
+          "mergedDocumentName": {
+            "type": "string"
+          }
+        }
+      },
       "OcrConfig": {
         "type": "object",
         "properties": {
@@ -1158,24 +1172,7 @@
             "$ref": "#/components/schemas/OcrProgress"
           },
           "inDocuments": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/Document"
-            },
-            "properties": {
-              "mergedDocumentName": {
-                "type": "string"
-              },
-              "empty": {
-                "type": "boolean"
-              },
-              "first": {
-                "$ref": "#/components/schemas/Document"
-              },
-              "last": {
-                "$ref": "#/components/schemas/Document"
-              }
-            }
+            "$ref": "#/components/schemas/DocumentMutableList"
           }
         }
       },

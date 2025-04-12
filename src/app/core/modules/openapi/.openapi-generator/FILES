@@ -10,6 +10,7 @@ configuration.ts
 encoder.ts
 git_push.sh
 index.ts
+model/document-mutable-list.ts
 model/document.ts
 model/error-info.ts
 model/file-format-response.ts
