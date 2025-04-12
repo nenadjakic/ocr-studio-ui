@@ -11,9 +11,9 @@
 
 
 export interface OcrConfig { 
-    language?: string;
     ocrEngineMode?: OcrConfig.OcrEngineModeEnum;
     pageSegmentationMode?: OcrConfig.PageSegmentationModeEnum;
+    language?: string;
     tessVariables?: { [key: string]: string; };
     preProcessing?: boolean;
     fileFormat?: OcrConfig.FileFormatEnum;

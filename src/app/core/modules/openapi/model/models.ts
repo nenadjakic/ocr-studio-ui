@@ -1,4 +1,5 @@
 export * from './document';
+export * from './document-mutable-list';
 export * from './error-info';
 export * from './file-format-response';
 export * from './ocr-config';
