@@ -290,7 +290,7 @@ export class TasksComponent {
   }
 
   getInDocumentCount(task: Task) {
-    return task.inDocuments?.length;
+    return task.inDocuments?.documents?.length;
   }
 
   canEdit(status?: OcrProgress.StatusEnum) {

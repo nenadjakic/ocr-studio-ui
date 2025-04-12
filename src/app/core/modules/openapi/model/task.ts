@@ -9,9 +9,9 @@
  * Do not edit the class manually.
  */
 import { OcrProgress } from './ocr-progress';
-import { Document } from './document';
 import { OcrConfig } from './ocr-config';
 import { SchedulerConfig } from './scheduler-config';
+import { DocumentMutableList } from './document-mutable-list';
 
 
 export interface Task { 
@@ -25,6 +25,6 @@ export interface Task {
     ocrConfig?: OcrConfig;
     schedulerConfig?: SchedulerConfig;
     ocrProgress?: OcrProgress;
-    inDocuments?: Array<Document>;
+    inDocuments?: DocumentMutableList;
 }
 
